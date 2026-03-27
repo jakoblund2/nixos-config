@@ -1,11 +1,8 @@
-{ pkgs, ... }:
+{ pkgs, plasma-manager, ... }:
 
-let
-  plasma-manager = builtins.fetchTarball "https://github.com/nix-community/plasma-manager/archive/trunk.tar.gz";
-in
 {
   imports = [
-    (import "${plasma-manager}/modules")
+    plasma-manager.homeModules.plasma-manager
   ];
 
   home.stateVersion = "25.11";
@@ -36,7 +33,10 @@ in
   # Shell
   programs.fish = {
     enable = true;
-    shellAliases.rebuild = "sudo nixos-rebuild switch";
+    shellAliases = {
+      rebuild = "sudo nixos-rebuild switch --flake /etc/nixos";
+      update = "nix flake update --flake /etc/nixos";
+    };
     interactiveShellInit = ''
       set -g fish_greeting
     '';
@@ -160,8 +160,8 @@ in
   };
 
   # Solaar config
-  xdg.configFile."solaar/config.yaml".source = /etc/nixos/home-files/solaar/config.yaml;
-  xdg.configFile."solaar/rules.yaml".source = /etc/nixos/home-files/solaar/rules.yaml;
+  xdg.configFile."solaar/config.yaml".source = ./home-files/solaar/config.yaml;
+  xdg.configFile."solaar/rules.yaml".source = ./home-files/solaar/rules.yaml;
 
   # Autostart: Solaar (minimized)
   xdg.configFile."autostart/solaar.desktop".text = ''

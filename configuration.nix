@@ -1,12 +1,8 @@
-{ config, pkgs, ... }:
+{ config, pkgs, plasma-manager, ... }:
 
-let
-  home-manager = builtins.fetchTarball "https://github.com/nix-community/home-manager/archive/release-25.11.tar.gz";
-in
 {
   imports = [
     ./hardware-configuration.nix
-    (import "${home-manager}/nixos")
   ];
 
   nix.settings.experimental-features = [ "nix-command" "flakes" ];
@@ -81,6 +77,8 @@ in
   services.fprintd.enable = true;
   services.hardware.bolt.enable = true;
   services.power-profiles-daemon.enable = true;
+  services.boinc.enable = true;
+  #must run boincmgr with sudo for it to work
 
   # Shell
   programs.fish.enable = true;
@@ -102,11 +100,11 @@ in
   # Home-manager
   home-manager.useGlobalPkgs = true;
   home-manager.useUserPackages = true;
+  home-manager.extraSpecialArgs = { inherit plasma-manager; };
   home-manager.users.jakob = import ./home.nix;
 
   # System packages (sorted)
   environment.systemPackages = with pkgs; [
-    boinc
     bolt
     brightnessctl
     discord
@@ -122,6 +120,7 @@ in
     gst_all_1.gst-plugins-good
     gst_all_1.gstreamer
     javaPackages.compiler.openjdk21
+    kdePackages.filelight
     kdePackages.partitionmanager
     kdePackages.yakuake
     localsend
