@@ -54,6 +54,10 @@
   # Console & keyboard
   console.keyMap = "dk-latin1";
 
+  services.xserver.xkb = {
+    layout = "dk";
+  };
+
   # Desktop environment
   services.displayManager.sddm.enable = true;
   services.displayManager.sddm.settings.Theme = {
@@ -85,6 +89,9 @@
 
   # Gaming
   programs.steam.enable = true;
+
+  # nix-ld
+  programs.nix-ld.enable = true;
 
   # User
   users.users.jakob = {
@@ -141,6 +148,7 @@
     uv
     vlc
     vscode
+    waypipe
     wev
     wget
     yt-dlp
