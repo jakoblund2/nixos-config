@@ -22,8 +22,6 @@
     };
 
     configFile = {
-      kcminputrc.Mouse.cursorTheme = "Bibata-Modern-Ice";
-      kcminputrc.Mouse.cursorSize = 24;
       kdeglobals.KDE.AnimationDurationFactor = 0.7;
       kdeglobals.General.AccentColor = "61,212,37";
       kdeglobals.General.LastUsedCustomAccentColor = "61,212,37";

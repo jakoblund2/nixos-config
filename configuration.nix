@@ -23,7 +23,6 @@
   # Hardware
   hardware.bluetooth.enable = true;
   hardware.logitech.wireless.enable = true;
-  hardware.logitech.wireless.enableGraphical = true;
   hardware.uinput.enable = true;
   hardware.fw-fanctrl.enable = true;
   hardware.fw-fanctrl.config.defaultStrategy = "lazy";
@@ -78,7 +77,6 @@
 
   # Services
   services.printing.enable = true;
-  services.fprintd.enable = true;
   services.hardware.bolt.enable = true;
   services.power-profiles-daemon.enable = true;
   services.boinc.enable = true;
@@ -112,6 +110,7 @@
 
   # System packages (sorted)
   environment.systemPackages = with pkgs; [
+    bibata-cursors
     bolt
     brightnessctl
     discord
@@ -126,8 +125,7 @@
     gst_all_1.gst-plugins-base
     gst_all_1.gst-plugins-good
     gst_all_1.gstreamer
-    javaPackages.compiler.openjdk21
-    kdePackages.filelight
+kdePackages.filelight
     kdePackages.partitionmanager
     kdePackages.yakuake
     localsend
@@ -136,7 +134,7 @@
     python3
     python3Packages.numpy
     python3Packages.pillow
-    python313Packages.uvicorn
+    python3Packages.uvicorn
     qgis
     solaar
     speechd
@@ -149,7 +147,6 @@
     vlc
     vscode
     waypipe
-    wev
     wget
     yt-dlp
     zip
