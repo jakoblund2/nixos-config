@@ -12,6 +12,8 @@
   boot.loader.systemd-boot.configurationLimit = 3;
   boot.loader.efi.canTouchEfiVariables = true;
   boot.kernelPackages = pkgs.linuxPackages_latest;
+  boot.kernelParams = [ "quiet" "splash" ];
+  boot.plymouth.enable = true;
 
   # Networking
   networking.hostName = "framework";
@@ -79,8 +81,13 @@
   services.printing.enable = true;
   services.hardware.bolt.enable = true;
   services.power-profiles-daemon.enable = true;
-  services.boinc.enable = true;
-  #must run boincmgr with sudo for it to work
+  services.boinc.enable = true; #must run boincmgr with sudo for it to work
+
+  # Permissions
+  systemd.tmpfiles.rules = [
+    "Z /etc/nixos 0755 jakob users -"
+  ];
+
 
   # Shell
   programs.fish.enable = true;
@@ -125,11 +132,13 @@
     gst_all_1.gst-plugins-base
     gst_all_1.gst-plugins-good
     gst_all_1.gstreamer
-kdePackages.filelight
+    imagemagick
+    kdePackages.filelight
     kdePackages.partitionmanager
     kdePackages.yakuake
     localsend
     mission-center
+    nil
     openconnect
     python3
     python3Packages.numpy

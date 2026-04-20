@@ -1,5 +1,12 @@
 { pkgs, plasma-manager, ... }:
 
+let
+  accent      = "61,212,37";
+  accentLight = "118,223,101";
+  accentDark  = "45,155,27";
+  selectionBg = "119,224,102";
+  selectionLink = "100,254,84";
+in
 {
   imports = [
     plasma-manager.homeModules.plasma-manager
@@ -23,8 +30,46 @@
 
     configFile = {
       kdeglobals.KDE.AnimationDurationFactor = 0.7;
-      kdeglobals.General.AccentColor = "61,212,37";
-      kdeglobals.General.LastUsedCustomAccentColor = "61,212,37";
+      kdeglobals.General.AccentColor = accent;
+      kdeglobals.General.LastUsedCustomAccentColor = accent;
+
+      "kdeglobals"."Colors:Button".BackgroundAlternate = accentLight;
+      "kdeglobals"."Colors:Button".DecorationFocus = accent;
+      "kdeglobals"."Colors:Button".DecorationHover = accent;
+      "kdeglobals"."Colors:Button".ForegroundActive = accent;
+      "kdeglobals"."Colors:Button".ForegroundLink = accentDark;
+
+      "kdeglobals"."Colors:Complementary".DecorationFocus = accent;
+      "kdeglobals"."Colors:Complementary".DecorationHover = accent;
+      "kdeglobals"."Colors:Complementary".ForegroundActive = accent;
+      "kdeglobals"."Colors:Complementary".ForegroundLink = accent;
+
+      "kdeglobals"."Colors:Header".DecorationFocus = accent;
+      "kdeglobals"."Colors:Header".DecorationHover = accent;
+      "kdeglobals"."Colors:Header".ForegroundActive = accent;
+      "kdeglobals"."Colors:Header".ForegroundLink = accentDark;
+
+      "kdeglobals"."Colors:Selection".BackgroundAlternate = selectionBg;
+      "kdeglobals"."Colors:Selection".BackgroundNormal = selectionBg;
+      "kdeglobals"."Colors:Selection".DecorationFocus = accent;
+      "kdeglobals"."Colors:Selection".DecorationHover = accent;
+      "kdeglobals"."Colors:Selection".ForegroundActive = accent;
+      "kdeglobals"."Colors:Selection".ForegroundLink = selectionLink;
+
+      "kdeglobals"."Colors:Tooltip".DecorationFocus = accent;
+      "kdeglobals"."Colors:Tooltip".DecorationHover = accent;
+      "kdeglobals"."Colors:Tooltip".ForegroundActive = accent;
+      "kdeglobals"."Colors:Tooltip".ForegroundLink = accentDark;
+
+      "kdeglobals"."Colors:View".DecorationFocus = accent;
+      "kdeglobals"."Colors:View".DecorationHover = accent;
+      "kdeglobals"."Colors:View".ForegroundActive = accent;
+      "kdeglobals"."Colors:View".ForegroundLink = accentDark;
+
+      "kdeglobals"."Colors:Window".DecorationFocus = accent;
+      "kdeglobals"."Colors:Window".DecorationHover = accent;
+      "kdeglobals"."Colors:Window".ForegroundActive = accent;
+      "kdeglobals"."Colors:Window".ForegroundLink = accentDark;
 
       ksmserverrc.General.loginMode = "emptySession";
       kwinrc.Windows.RollOverDesktops = false;
@@ -73,7 +118,7 @@
               showApplicationIconsOnWindowOutlines = true;
               showWindowIcons = true;
               showWindowOutlines = true;
-              textDisplay = "desktopNumber";
+              #textDisplay = "desktopNumber";
             };
           }
 
@@ -110,6 +155,15 @@
         ];
       }
     ];
+  };
+
+  systemd.user.services.restore-cursor = {
+    Unit.Description = "Restore cursor theme after sleep";
+    Service = {
+      Type = "oneshot";
+      ExecStart = "${pkgs.kdePackages.plasma-workspace}/bin/plasma-apply-cursortheme Bibata-Modern-Ice";
+    };
+    Install.WantedBy = [ "suspend.target" "hybrid-sleep.target" "hibernate.target" ];
   };
 
   # Autostart: Solaar (minimized)
