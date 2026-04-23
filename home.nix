@@ -37,6 +37,7 @@
     shellAliases = {
       rebuild = "sudo nixos-rebuild switch --flake /etc/nixos";
       update = "nix flake update --flake /etc/nixos";
+      garbage-collect = "sudo nix-collect-garbage -d";
     };
     interactiveShellInit = ''
       set -g fish_greeting

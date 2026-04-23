@@ -76,6 +76,8 @@ in
       kwinrc.Desktops.Number = 3;
       kwinrc.Desktops.Rows = 1;
 
+      kwinrc."Effect-overview".BorderActivate = 9;
+
       plasma-localerc.Formats.LANG = "en_DK.UTF-8";
 
       yakuakerc.Dialogs.FirstRun = false;

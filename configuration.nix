@@ -52,6 +52,22 @@
     LC_TIME = "en_US.UTF-8";
   };
 
+  fonts.packages = with pkgs; [
+    noto-fonts
+    noto-fonts-cjk-sans
+    noto-fonts-cjk-serif
+    noto-fonts-color-emoji
+  ];
+
+  # Optional but recommended — sets sensible defaults and fixes the
+  # Chinese-vs-Japanese glyph selection issue:
+  fonts.fontconfig.defaultFonts = {
+    sansSerif = [ "Noto Sans" "Noto Sans CJK JP" ];
+    serif = [ "Noto Serif" "Noto Serif CJK JP" ];
+    monospace = [ "Noto Sans Mono" "Noto Sans Mono CJK JP" ];
+    emoji = [ "Noto Color Emoji" ];
+  };
+
   # Console & keyboard
   console.keyMap = "dk-latin1";
 
@@ -118,6 +134,7 @@
   # System packages (sorted)
   environment.systemPackages = with pkgs; [
     bibata-cursors
+    blender
     bolt
     brightnessctl
     discord
@@ -126,6 +143,7 @@
     exfatprogs
     ffmpeg
     floorp-bin
+    freecad
     ftb-app
     gdal
     gnome-boxes
