@@ -1,7 +1,7 @@
 { pkgs, lib, plasma-manager, ... }:
 
 let
-  enableKrohnkite = true;
+  enableKrohnkite = false;
   accent      = "61,212,37";
   accentLight = "118,223,101";
   accentDark  = "45,155,27";
