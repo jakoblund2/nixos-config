@@ -1,6 +1,7 @@
-{ pkgs, plasma-manager, ... }:
+{ pkgs, lib, plasma-manager, ... }:
 
 let
+  enableKrohnkite = true;
   accent      = "61,212,37";
   accentLight = "118,223,101";
   accentDark  = "45,155,27";
@@ -11,6 +12,8 @@ in
   imports = [
     plasma-manager.homeModules.plasma-manager
   ];
+
+  home.packages = lib.optional enableKrohnkite pkgs.kdePackages.krohnkite;
 
   # Plasma desktop
   programs.plasma = {
