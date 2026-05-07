@@ -74,6 +74,8 @@ in
       "kdeglobals"."Colors:Window".ForegroundActive = accent;
       "kdeglobals"."Colors:Window".ForegroundLink = accentDark;
 
+      kdeglobals.KDE.AutomaticLookAndFeel = true;
+
       ksmserverrc.General.loginMode = "emptySession";
       kwinrc.Windows.RollOverDesktops = false;
       kwinrc.Desktops.Number = 3;
@@ -95,7 +97,7 @@ in
       {
         location = "bottom";
         alignment = "center";
-        height = 54;
+        height = 52;
         floating = true;
         hiding = "none";
         minLength = 787;
@@ -142,6 +144,12 @@ in
                 "org.kde.plasma.clipboard"
                 "org.kde.plasma.devicenotifier"
                 "org.kde.plasma.mediacontroller"
+                "org.kde.plasma.brightness"
+                "org.kde.yakuake"
+                "Yakuake"
+                "librepods"
+                ".librepods-wrapped"
+                "indicator-solaar"
               ];
             };
           }
@@ -176,25 +184,16 @@ in
     [Desktop Entry]
     Type=Application
     Name=Solaar
-    Exec=${pkgs.solaar}/bin/solaar --window=hide
+    Exec=${pkgs.solaar}/bin/solaar --window=hide --battery-icons=solaar
     Terminal=false
-    OnlyShowIn=KDE;
-    X-KDE-autostart-phase=1
   '';
 
   # Autostart: Yakuake (start hidden)
   xdg.configFile."autostart/yakuake.desktop".text = ''
     [Desktop Entry]
     Type=Application
-    Version=1.0
     Name=Yakuake
-    Exec=${pkgs.writeShellScript "start-yakuake-hidden" ''
-      ${pkgs.kdePackages.yakuake}/bin/yakuake &
-      sleep 2
-      ${pkgs.kdePackages.qttools}/bin/qdbus org.kde.yakuake /yakuake/window org.kde.yakuake.toggleWindowState || true
-    ''}
+    Exec=${pkgs.kdePackages.yakuake}/bin/yakuake
     Terminal=false
-    OnlyShowIn=KDE;
-    X-KDE-autostart-phase=1
   '';
 }

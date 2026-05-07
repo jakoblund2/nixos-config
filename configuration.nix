@@ -23,16 +23,33 @@
   ];
 
   # Hardware
-  hardware.bluetooth.enable = true;
+  #hardware.bluetooth.enable = true;
+  hardware.bluetooth = {
+    enable = true;
+    powerOnBoot = true;
+    settings = {
+      General = {
+        Enable = "Source,Sink,Media,MediaEndpoint";
+        Experimental = true;
+        KernelExperimental = true;
+      };
+    };
+  };
   hardware.logitech.wireless.enable = true;
   hardware.uinput.enable = true;
   hardware.fw-fanctrl.enable = true;
   hardware.fw-fanctrl.config.defaultStrategy = "lazy";
+  hardware.firmware = [ pkgs.sof-firmware ]; # firmware for framework microphone
   hardware.cpu.amd.updateMicrocode = true;
   hardware.graphics = {
     enable = true;
     enable32Bit = true;
   };
+
+  boot.extraModprobeConfig = ''
+    blacklist snd_acp_pci
+    blacklist snd_pci_ps
+  '';
 
   # Unfree
   nixpkgs.config.allowUnfree = true;
@@ -114,6 +131,24 @@
   # nix-ld
   programs.nix-ld.enable = true;
 
+  # AI
+  services.ollama = {
+    enable = true;
+    package = pkgs.ollama-vulkan;
+    loadModels = [
+      "llama3.2:3b"           # fast everyday chat
+      "qwen2.5-coder:7b"      # coding daily driver, 16K+ context
+      "qwen3:14b"             # heavy lift: reasoning, science, hard general tasks
+    ];
+  };
+
+  services.open-webui.enable = true;
+
+  systemd.services.ollama = { # wait for network to download models
+    after = [ "network-online.target" ];
+    wants = [ "network-online.target" ];
+  };
+
   # User
   users.users.jakob = {
     isNormalUser = true;
@@ -133,6 +168,7 @@
 
   # System packages (sorted)
   environment.systemPackages = with pkgs; [
+    alsa-utils
     bibata-cursors
     blender
     bolt
@@ -152,11 +188,15 @@
     gst_all_1.gstreamer
     imagemagick
     kdePackages.filelight
+    kdePackages.kamoso
+    kdePackages.kweather
     kdePackages.partitionmanager
     kdePackages.yakuake
+    librepods
     localsend
     mission-center
     nil
+    onlyoffice-desktopeditors
     openconnect
     python3
     python3Packages.numpy
@@ -175,7 +215,7 @@
     vscode
     waypipe
     wget
-    yt-dlp
+    #yt-dlp
     zip
     zoom
 
