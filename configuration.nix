@@ -114,7 +114,6 @@
   services.printing.enable = true;
   services.hardware.bolt.enable = true;
   services.power-profiles-daemon.enable = true;
-  services.boinc.enable = true; #must run boincmgr with sudo for it to work
 
   # Permissions
   systemd.tmpfiles.rules = [
@@ -131,23 +130,21 @@
   # nix-ld
   programs.nix-ld.enable = true;
 
+  # zram
+  zramSwap.enable = true;
+
   # AI
-  services.ollama = {
-    enable = true;
-    package = pkgs.ollama-vulkan;
-    loadModels = [
-      "llama3.2:3b"           # fast everyday chat
-      "qwen2.5-coder:7b"      # coding daily driver, 16K+ context
-      "qwen3:14b"             # heavy lift: reasoning, science, hard general tasks
-    ];
-  };
+  #services.ollama = {
+  #  enable = true;
+  #  package = pkgs.ollama-vulkan;
+  #  loadModels = [
+  #    "llama3.2:3b"           # fast everyday chat
+  #    "qwen2.5-coder:7b"      # coding daily driver, 16K+ context
+  #    "qwen3:14b"             # heavy lift: reasoning, science, hard general tasks
+  #  ];
+  #};
 
-  services.open-webui.enable = true;
-
-  systemd.services.ollama = { # wait for network to download models
-    after = [ "network-online.target" ];
-    wants = [ "network-online.target" ];
-  };
+  #services.open-webui.enable = true;
 
   # User
   users.users.jakob = {
@@ -186,6 +183,7 @@
     gst_all_1.gst-plugins-base
     gst_all_1.gst-plugins-good
     gst_all_1.gstreamer
+    htop
     imagemagick
     kdePackages.filelight
     kdePackages.kamoso
@@ -215,13 +213,13 @@
     vscode
     waypipe
     wget
-    #yt-dlp
+    yt-dlp
     zip
     zoom
+  ];
 
-    (pkgs.writeShellScriptBin "esa-snap" ''
-      ${pkgs.steam-run}/bin/steam-run ~/esa-snap/bin/snap "$@"
-    '')
+  environment.plasma6.excludePackages = with pkgs; [
+    kdePackages.discover
   ];
 
   system.stateVersion = "25.11";
