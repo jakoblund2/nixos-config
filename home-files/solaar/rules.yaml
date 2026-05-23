@@ -2,9 +2,9 @@
 ---
 - Feature: THUMB WHEEL
 - Rule:
-  - Test: [thumb_wheel_down, 30]
+  - Test: [thumb_wheel_up, 30]
   - Execute: [qdbus, org.kde.KWin, /KWin, org.kde.KWin.nextDesktop]
 - Rule:
-  - Test: [thumb_wheel_up, 30]
+  - Test: [thumb_wheel_down, 30]
   - Execute: [qdbus, org.kde.KWin, /KWin, org.kde.KWin.previousDesktop]
 ...

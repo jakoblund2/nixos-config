@@ -146,6 +146,13 @@
 
   #services.open-webui.enable = true;
 
+  # Podman (rootless, with docker CLI compatibility)
+  virtualisation.podman = {
+    enable = true;
+    dockerCompat = true;
+    defaultNetwork.settings.dns_enabled = true;
+  };
+
   # User
   users.users.jakob = {
     isNormalUser = true;
@@ -174,6 +181,7 @@
     earlyoom
     espeak-ng
     exfatprogs
+    fastfetch
     ffmpeg
     floorp-bin
     freecad
