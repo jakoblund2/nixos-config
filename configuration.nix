@@ -38,7 +38,7 @@
   hardware.logitech.wireless.enable = true;
   hardware.uinput.enable = true;
   hardware.fw-fanctrl.enable = true;
-  hardware.fw-fanctrl.config.defaultStrategy = "lazy";
+  hardware.fw-fanctrl.config.defaultStrategy = "medium";
   hardware.firmware = [ pkgs.sof-firmware ]; # firmware for framework microphone
   hardware.cpu.amd.updateMicrocode = true;
   hardware.graphics = {
@@ -92,6 +92,9 @@
     layout = "dk";
   };
 
+  # Optimize
+  nix.settings.auto-optimise-store = true;
+
   # Desktop environment
   services.displayManager.sddm.enable = true;
   services.displayManager.sddm.settings.Theme = {
@@ -118,6 +121,7 @@
   # Permissions
   systemd.tmpfiles.rules = [
     "Z /etc/nixos 0755 jakob users -"
+    "w /sys/devices/system/cpu/cpufreq/boost - - - - 0"
   ];
 
 
@@ -134,17 +138,21 @@
   zramSwap.enable = true;
 
   # AI
-  #services.ollama = {
-  #  enable = true;
-  #  package = pkgs.ollama-vulkan;
-  #  loadModels = [
-  #    "llama3.2:3b"           # fast everyday chat
-  #    "qwen2.5-coder:7b"      # coding daily driver, 16K+ context
-  #    "qwen3:14b"             # heavy lift: reasoning, science, hard general tasks
-  #  ];
-  #};
+  services.ollama = {
+    enable = true;
+    package = pkgs.ollama-vulkan;
+    environmentVariables = {
+      OLLAMA_IGPU_ENABLE = "1";
+    };
+    loadModels = [
+      "llama3.2:3b"           # fast everyday chat
+      "qwen2.5-coder:14b"      # coding daily driver, 16K+ context
+      "qwen3:14b"             # heavy lift: reasoning, science, hard general tasks
+      #"north-mini-code-1.0:q4_K_M"
+    ];
+  };
 
-  #services.open-webui.enable = true;
+  services.open-webui.enable = true; # http://localhost:8080/
 
   # Podman (rootless, with docker CLI compatibility)
   virtualisation.podman = {
@@ -185,35 +193,30 @@
     ffmpeg
     floorp-bin
     freecad
-    ftb-app
     gdal
     gnome-boxes
-    gst_all_1.gst-plugins-base
-    gst_all_1.gst-plugins-good
-    gst_all_1.gstreamer
     htop
     imagemagick
     kdePackages.filelight
     kdePackages.kamoso
+    kdePackages.kcalc
     kdePackages.kweather
     kdePackages.partitionmanager
     kdePackages.yakuake
+    krita
     librepods
     localsend
     mission-center
-    nil
     onlyoffice-desktopeditors
     openconnect
     python3
-    python3Packages.numpy
-    python3Packages.pillow
-    python3Packages.uvicorn
     qgis
     solaar
     speechd
     spotify
     sqlite
-    teams-for-linux
+    tor-browser
+    typst
     unzip
     usbutils
     uv
@@ -223,7 +226,7 @@
     wget
     yt-dlp
     zip
-    zoom
+    #zoom
   ];
 
   environment.plasma6.excludePackages = with pkgs; [

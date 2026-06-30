@@ -3,8 +3,8 @@
 - Feature: THUMB WHEEL
 - Rule:
   - Test: [thumb_wheel_up, 30]
-  - Execute: [qdbus, org.kde.KWin, /KWin, org.kde.KWin.nextDesktop]
+  - Execute: [qdbus, org.kde.kglobalaccel, /component/kwin, org.kde.kglobalaccel.Component.invokeShortcut, 'Switch to Next Desktop']
 - Rule:
   - Test: [thumb_wheel_down, 30]
-  - Execute: [qdbus, org.kde.KWin, /KWin, org.kde.KWin.previousDesktop]
+  - Execute: [qdbus, org.kde.kglobalaccel, /component/kwin, org.kde.kglobalaccel.Component.invokeShortcut, 'Switch to Previous Desktop']
 ...

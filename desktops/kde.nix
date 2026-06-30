@@ -32,6 +32,7 @@ in
     };
 
     configFile = {
+      kdeglobals.General.BrowserApplication = "floorp.desktop";
       kdeglobals.KDE.AnimationDurationFactor = 0.7;
       kdeglobals.General.AccentColor = accent;
       kdeglobals.General.LastUsedCustomAccentColor = accent;
@@ -80,6 +81,7 @@ in
 
       ksmserverrc.General.loginMode = "emptySession";
       kwinrc.Windows.RollOverDesktops = false;
+      kwinrc.Windows.PerOutputVirtualDesktops = true;
       kwinrc.Desktops.Number = 3;
       kwinrc.Desktops.Rows = 1;
 
