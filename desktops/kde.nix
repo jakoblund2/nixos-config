@@ -174,25 +174,6 @@ in
     ];
   };
 
-  systemd.user.services.restore-cursor = {
-    Unit.Description = "Restore cursor theme after sleep";
-    Service = {
-      Type = "oneshot";
-      ExecStart = "${pkgs.kdePackages.plasma-workspace}/bin/plasma-apply-cursortheme Bibata-Modern-Ice";
-    };
-    Install.WantedBy = [ "suspend.target" "hybrid-sleep.target" "hibernate.target" ];
-  };
-
-  # Workaround for https://github.com/nix-community/plasma-manager/issues/562:
-  # AutomaticLookAndFeel resets cursor at login; re-apply Bibata after Plasma loads.
-  xdg.configFile."autostart/restore-cursor.desktop".text = ''
-    [Desktop Entry]
-    Type=Application
-    Name=Restore Cursor Theme
-    Exec=${pkgs.kdePackages.plasma-workspace}/bin/plasma-apply-cursortheme Bibata-Modern-Ice
-    Terminal=false
-  '';
-
   # Autostart: Solaar (minimized)
   xdg.configFile."autostart/solaar.desktop".text = ''
     [Desktop Entry]

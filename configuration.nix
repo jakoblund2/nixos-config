@@ -9,10 +9,10 @@
 
   # Bootloader
   boot.loader.systemd-boot.enable = true;
-  boot.loader.systemd-boot.configurationLimit = 3;
+  boot.loader.systemd-boot.configurationLimit = 2;
   boot.loader.efi.canTouchEfiVariables = true;
   boot.kernelPackages = pkgs.linuxPackages_latest;
-  boot.kernelParams = [ "quiet" "splash" ];
+  boot.kernelParams = [ "quiet" "splash" "ima_hash=sha256" ];
   boot.plymouth.enable = true;
 
   # Networking
@@ -21,6 +21,12 @@
   networking.networkmanager.plugins = with pkgs; [
     networkmanager-openconnect
   ];
+
+  networking.firewall = {
+    enable = true;
+    allowedTCPPorts = [ 80 443 53317 ];
+    allowedUDPPorts = [ 53317 ];
+  };
 
   # Hardware
   #hardware.bluetooth.enable = true;
@@ -39,7 +45,7 @@
   hardware.uinput.enable = true;
   hardware.fw-fanctrl.enable = true;
   hardware.fw-fanctrl.config.defaultStrategy = "medium";
-  hardware.firmware = [ pkgs.sof-firmware ]; # firmware for framework microphone
+  #hardware.firmware = [ pkgs.sof-firmware ]; # firmware for framework microphone
   hardware.cpu.amd.updateMicrocode = true;
   hardware.graphics = {
     enable = true;
@@ -85,8 +91,22 @@
     emoji = [ "Noto Color Emoji" ];
   };
 
+  nixpkgs.overlays = [
+    (final: prev: {
+      python3 = prev.python3.override {
+        packageOverrides = py-final: py-prev: {
+          qscintilla-qt6 = py-prev.qscintilla-qt6.overridePythonAttrs (old: {
+            # Disable the strict metadata check that is failing
+            pythonMetadataCheckPhase = ":";
+            pythonImportsCheck = [];
+          });
+        };
+      };
+    })
+  ];
+
   # Console & keyboard
-  console.keyMap = "dk-latin1";
+  console.keyMap = "dk";
 
   services.xserver.xkb = {
     layout = "dk";
@@ -121,8 +141,19 @@
   # Permissions
   systemd.tmpfiles.rules = [
     "Z /etc/nixos 0755 jakob users -"
-    "w /sys/devices/system/cpu/cpufreq/boost - - - - 0"
+    #"w /sys/devices/system/cpu/cpufreq/boost - - - - 1" # Enable CPU boost
   ];
+
+  systemd.services.ryzenadj-thermal-limit = {
+  description = "Set Ryzen thermal limit via ryzenadj";
+  wantedBy = [ "multi-user.target" ];
+  after = [ "multi-user.target" ];
+  serviceConfig = {
+    Type = "oneshot";
+    RemainAfterExit = true;
+    ExecStart = "${pkgs.ryzenadj}/bin/ryzenadj --tctl-temp=90";
+  };
+};
 
 
   # Shell
@@ -146,30 +177,22 @@
     };
     loadModels = [
       "llama3.2:3b"           # fast everyday chat
-      "qwen2.5-coder:14b"      # coding daily driver, 16K+ context
-      "qwen3:14b"             # heavy lift: reasoning, science, hard general tasks
-      #"north-mini-code-1.0:q4_K_M"
+      "ornith:9b"             # coding
+      "north-mini-code-1.0:q4_K_M" # coding
     ];
   };
 
   services.open-webui.enable = true; # http://localhost:8080/
 
-  # Podman (rootless, with docker CLI compatibility)
-  virtualisation.podman = {
-    enable = true;
-    dockerCompat = true;
-    defaultNetwork.settings.dns_enabled = true;
-  };
-
   # User
   users.users.jakob = {
     isNormalUser = true;
     description = "jakob";
-    extraGroups = [ "networkmanager" "wheel" "uinput" ];
+    extraGroups = [ "networkmanager" "wheel" "uinput" "docker" ];
     shell = pkgs.fish;
-    packages = with pkgs; [
-      kdePackages.kate
-    ];
+    #packages = with pkgs; [
+    #  kdePackages.kate
+    #];
   };
 
   # Home-manager
@@ -180,9 +203,9 @@
 
   # System packages (sorted)
   environment.systemPackages = with pkgs; [
-    alsa-utils
+    #alsa-utils
     bibata-cursors
-    blender
+    #blender
     bolt
     brightnessctl
     discord
@@ -192,41 +215,44 @@
     fastfetch
     ffmpeg
     floorp-bin
-    freecad
-    gdal
-    gnome-boxes
+    #freecad
+    #gdal
+    #gnome-boxes
     htop
     imagemagick
+    jq
     kdePackages.filelight
     kdePackages.kamoso
+    kdePackages.kate
     kdePackages.kcalc
     kdePackages.kweather
     kdePackages.partitionmanager
     kdePackages.yakuake
-    krita
+    #krita
     librepods
+    libreoffice-fresh
     localsend
     mission-center
     onlyoffice-desktopeditors
     openconnect
+    #parted
     python3
     qgis
+    ryzenadj
     solaar
     speechd
     spotify
-    sqlite
     tor-browser
     typst
     unzip
     usbutils
-    uv
     vlc
     vscode
     waypipe
     wget
     yt-dlp
     zip
-    #zoom
+    #zoom #broken
   ];
 
   environment.plasma6.excludePackages = with pkgs; [
