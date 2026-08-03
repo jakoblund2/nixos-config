@@ -3,6 +3,7 @@
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
+    nixpkgs-qgis-pin.url = "github:NixOS/nixpkgs/61b7c44c4073f0b827768aff0049561b5110ea5a";
 
     home-manager = {
       url = "github:nix-community/home-manager";
@@ -15,10 +16,10 @@
     };
   };
 
-  outputs = { nixpkgs, home-manager, plasma-manager, ... }: {
+  outputs = { nixpkgs, home-manager, plasma-manager, nixpkgs-qgis-pin, ... }: {
     nixosConfigurations.framework = nixpkgs.lib.nixosSystem {
       system = "x86_64-linux";
-      specialArgs = { inherit plasma-manager; };
+      specialArgs = { inherit plasma-manager nixpkgs-qgis-pin; };
       modules = [
         ./configuration.nix
         home-manager.nixosModules.home-manager

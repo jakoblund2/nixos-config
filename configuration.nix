@@ -1,4 +1,4 @@
-{ config, pkgs, plasma-manager, ... }:
+{ config, pkgs, plasma-manager, nixpkgs-qgis-pin, ... }:
 
 {
   imports = [
@@ -91,22 +91,14 @@
     emoji = [ "Noto Color Emoji" ];
   };
 
-  nixpkgs.overlays = [
-    (final: prev: {
-      python3 = prev.python3.override {
-        packageOverrides = py-final: py-prev: {
-          qscintilla-qt6 = py-prev.qscintilla-qt6.overridePythonAttrs (old: {
-            # Disable the strict metadata check that is failing
-            pythonMetadataCheckPhase = ":";
-            pythonImportsCheck = [];
-          });
-        };
-      };
-    })
-  ];
-
   # Console & keyboard
   console.keyMap = "dk";
+
+  nixpkgs.overlays = [
+    (final: prev: {
+      qgis = (import nixpkgs-qgis-pin { system = prev.system; }).qgis;
+    })
+  ];
 
   services.xserver.xkb = {
     layout = "dk";
@@ -198,7 +190,7 @@
   # Home-manager
   home-manager.useGlobalPkgs = true;
   home-manager.useUserPackages = true;
-  home-manager.extraSpecialArgs = { inherit plasma-manager; };
+  home-manager.extraSpecialArgs = { inherit plasma-manager nixpkgs-qgis-pin; };
   home-manager.users.jakob = import ./home.nix;
 
   # System packages (sorted)
@@ -216,7 +208,7 @@
     ffmpeg
     floorp-bin
     #freecad
-    #gdal
+    gdal
     #gnome-boxes
     htop
     imagemagick
