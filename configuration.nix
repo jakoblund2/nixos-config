@@ -1,4 +1,11 @@
-{ config, pkgs, plasma-manager, nixpkgs-qgis-pin, ... }:
+{ config, pkgs, plasma-manager, nixpkgs-stable, ... }:
+
+let
+  pkgsStable = import nixpkgs-stable {
+    system = pkgs.system;
+    config.allowUnfree = true;
+  };
+in
 
 {
   imports = [
@@ -94,12 +101,6 @@
   # Console & keyboard
   console.keyMap = "dk";
 
-  nixpkgs.overlays = [
-    (final: prev: {
-      qgis = (import nixpkgs-qgis-pin { system = prev.system; }).qgis;
-    })
-  ];
-
   services.xserver.xkb = {
     layout = "dk";
   };
@@ -137,16 +138,15 @@
   ];
 
   systemd.services.ryzenadj-thermal-limit = {
-  description = "Set Ryzen thermal limit via ryzenadj";
-  wantedBy = [ "multi-user.target" ];
-  after = [ "multi-user.target" ];
-  serviceConfig = {
-    Type = "oneshot";
-    RemainAfterExit = true;
-    ExecStart = "${pkgs.ryzenadj}/bin/ryzenadj --tctl-temp=90";
+    description = "Set Ryzen thermal limit via ryzenadj";
+    wantedBy = [ "multi-user.target" ];
+    after = [ "multi-user.target" ];
+    serviceConfig = {
+      Type = "oneshot";
+      RemainAfterExit = true;
+      ExecStart = "${pkgs.ryzenadj}/bin/ryzenadj --tctl-temp=90";
+    };
   };
-};
-
 
   # Shell
   programs.fish.enable = true;
@@ -190,62 +190,69 @@
   # Home-manager
   home-manager.useGlobalPkgs = true;
   home-manager.useUserPackages = true;
-  home-manager.extraSpecialArgs = { inherit plasma-manager nixpkgs-qgis-pin; };
+  home-manager.extraSpecialArgs = { inherit plasma-manager; };
   home-manager.users.jakob = import ./home.nix;
 
   # System packages (sorted)
-  environment.systemPackages = with pkgs; [
-    #alsa-utils
-    bibata-cursors
-    #blender
-    bolt
-    brightnessctl
-    discord
-    earlyoom
-    espeak-ng
-    exfatprogs
-    fastfetch
-    ffmpeg
-    floorp-bin
-    #freecad
-    gdal
-    #gnome-boxes
-    htop
-    imagemagick
-    jq
-    kdePackages.filelight
-    kdePackages.kamoso
-    kdePackages.kate
-    kdePackages.kcalc
-    kdePackages.kweather
-    kdePackages.partitionmanager
-    kdePackages.yakuake
-    #krita
-    librepods
-    libreoffice-fresh
-    localsend
-    mission-center
-    onlyoffice-desktopeditors
-    openconnect
-    #parted
-    python3
-    qgis
-    ryzenadj
-    solaar
-    speechd
-    spotify
-    tor-browser
-    typst
-    unzip
-    usbutils
-    vlc
-    vscode
-    waypipe
-    wget
-    yt-dlp
-    zip
-    #zoom #broken
-  ];
+  environment.systemPackages =
+    let
+      unstablePackages = with pkgs; [
+        #alsa-utils
+        bibata-cursors
+        #blender
+        bolt
+        brightnessctl
+        discord
+        earlyoom
+        espeak-ng
+        exfatprogs
+        fastfetch
+        ffmpeg
+        floorp-bin
+        gdal
+        #gnome-boxes
+        htop
+        imagemagick
+        jq
+        kdePackages.filelight
+        kdePackages.kamoso
+        kdePackages.kate
+        kdePackages.kcalc
+        kdePackages.kweather
+        kdePackages.partitionmanager
+        kdePackages.yakuake
+        #krita
+        libreoffice-fresh
+        localsend
+        mission-center
+        onlyoffice-desktopeditors
+        openconnect
+        #parted
+        python3
+        ryzenadj
+        solaar
+        speechd
+        tor-browser
+        typst
+        unzip
+        usbutils
+        vscode
+        waypipe
+        wget
+        yt-dlp
+        zip
+      ];
+
+      stablePackages = with pkgsStable; [
+        freecad
+        librepods
+        qgis
+        spotify
+        vlc
+        zoom-us
+      ];
+    in
+    unstablePackages ++ stablePackages;
 
   environment.plasma6.excludePackages = with pkgs; [
     kdePackages.discover
