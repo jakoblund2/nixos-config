@@ -2,7 +2,7 @@
 
 let
   pkgsStable = import nixpkgs-stable {
-    system = pkgs.system;
+    system = pkgs.stdenv.hostPlatform.system;
     config.allowUnfree = true;
   };
 in
@@ -182,9 +182,6 @@ in
     description = "jakob";
     extraGroups = [ "networkmanager" "wheel" "uinput" "docker" ];
     shell = pkgs.fish;
-    #packages = with pkgs; [
-    #  kdePackages.kate
-    #];
   };
 
   # Home-manager
@@ -193,10 +190,14 @@ in
   home-manager.extraSpecialArgs = { inherit plasma-manager; };
   home-manager.users.jakob = import ./home.nix;
 
-  # System packages (sorted)
+  # System packages
   environment.systemPackages =
     let
       unstablePackages = with pkgs; [
+        
+      ];
+
+      stablePackages = with pkgsStable; [
         #alsa-utils
         bibata-cursors
         #blender
@@ -205,10 +206,11 @@ in
         discord
         earlyoom
         espeak-ng
-        exfatprogs
+        #exfatprogs
         fastfetch
         ffmpeg
         floorp-bin
+        freecad
         gdal
         #gnome-boxes
         htop
@@ -223,32 +225,28 @@ in
         kdePackages.yakuake
         #krita
         libreoffice-fresh
+        librepods
         localsend
         mission-center
         onlyoffice-desktopeditors
         openconnect
         #parted
         python3
+        qgis
         ryzenadj
         solaar
         speechd
+        spotify
         tor-browser
         typst
         unzip
         usbutils
+        vlc
         vscode
         waypipe
         wget
         yt-dlp
         zip
-      ];
-
-      stablePackages = with pkgsStable; [
-        freecad
-        librepods
-        qgis
-        spotify
-        vlc
         zoom-us
       ];
     in
