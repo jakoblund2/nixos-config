@@ -1,11 +1,4 @@
-{ config, pkgs, plasma-manager, nixpkgs-stable, ... }:
-
-let
-  pkgsStable = import nixpkgs-stable {
-    system = pkgs.stdenv.hostPlatform.system;
-    config.allowUnfree = true;
-  };
-in
+{ config, pkgs-unstable, pkgs-stable, plasma-manager, ... }:
 
 {
   imports = [
@@ -16,16 +9,19 @@ in
 
   # Bootloader
   boot.loader.systemd-boot.enable = true;
-  boot.loader.systemd-boot.configurationLimit = 2;
+  boot.loader.systemd-boot.configurationLimit = 3;
   boot.loader.efi.canTouchEfiVariables = true;
-  boot.kernelPackages = pkgs.linuxPackages_latest;
-  boot.kernelParams = [ "quiet" "splash" "ima_hash=sha256" ];
+  boot.kernelPackages = pkgs-unstable.linuxPackages_latest;
+  boot.kernelParams = [ "quiet" "splash" "resume=/dev/nvme0n1p5" "resume_offset=28600320"];
+  boot.kernelModules = [ "cpuid" "msr" ];
   boot.plymouth.enable = true;
+
+  security.protectKernelImage = false; # needed for hibernation
 
   # Networking
   networking.hostName = "framework";
   networking.networkmanager.enable = true;
-  networking.networkmanager.plugins = with pkgs; [
+  networking.networkmanager.plugins = with pkgs-unstable; [
     networkmanager-openconnect
   ];
 
@@ -36,32 +32,43 @@ in
   };
 
   # Hardware
-  #hardware.bluetooth.enable = true;
-  hardware.bluetooth = {
-    enable = true;
-    powerOnBoot = true;
-    settings = {
-      General = {
-        Enable = "Source,Sink,Media,MediaEndpoint";
-        Experimental = true;
-        KernelExperimental = true;
-      };
-    };
-  };
   hardware.logitech.wireless.enable = true;
   hardware.uinput.enable = true;
   hardware.fw-fanctrl.enable = true;
   hardware.fw-fanctrl.config.defaultStrategy = "medium";
-  #hardware.firmware = [ pkgs.sof-firmware ]; # firmware for framework microphone
+  hardware.enableRedistributableFirmware = true;
   hardware.cpu.amd.updateMicrocode = true;
   hardware.graphics = {
     enable = true;
     enable32Bit = true;
   };
 
-  boot.extraModprobeConfig = ''
-    blacklist snd_acp_pci
-    blacklist snd_pci_ps
+  hardware.bluetooth = {
+    enable = true;
+    powerOnBoot = true;
+    settings = {
+      General = {
+        # Shows battery charge of connected devices on supported
+        # Bluetooth adapters. Defaults to 'false'.
+        Experimental = true;
+        # When enabled other devices can connect faster to us, however
+        # the tradeoff is increased power consumption. Defaults to
+        # 'false'.
+        FastConnectable = false;
+      };
+      Policy = {
+        # Enable all controllers when they are found. This includes
+        # adapters present on start as well as adapters that are plugged
+        # in later on. Defaults to 'true'.
+        AutoEnable = true;
+      };
+    };
+  };
+
+  # Disable power saving on wifi module
+  environment.etc."NetworkManager/conf.d/wifi-powersave.conf".text = ''
+    [connection]
+    wifi.powersave = 2
   '';
 
   # Unfree
@@ -82,11 +89,12 @@ in
     LC_TIME = "en_US.UTF-8";
   };
 
-  fonts.packages = with pkgs; [
+  fonts.packages = with pkgs-unstable; [
     noto-fonts
     noto-fonts-cjk-sans
     noto-fonts-cjk-serif
     noto-fonts-color-emoji
+    jetbrains-mono
   ];
 
   # Optional but recommended — sets sensible defaults and fixes the
@@ -94,7 +102,7 @@ in
   fonts.fontconfig.defaultFonts = {
     sansSerif = [ "Noto Sans" "Noto Sans CJK JP" ];
     serif = [ "Noto Serif" "Noto Serif CJK JP" ];
-    monospace = [ "Noto Sans Mono" "Noto Sans Mono CJK JP" ];
+    monospace = [ "JetBrains Mono" "Noto Sans Mono CJK JP" ];
     emoji = [ "Noto Color Emoji" ];
   };
 
@@ -110,31 +118,29 @@ in
 
   # Desktop environment
   services.displayManager.sddm.enable = true;
-  services.displayManager.sddm.settings.Theme = {
-    CursorTheme = "Bibata-Modern-Ice";
-    CursorSize = 24;
-  };
+
   services.desktopManager.plasma6.enable = true;
 
   # Audio
-  services.pulseaudio.enable = false;
-  security.rtkit.enable = true;
-  services.pipewire = {
-    enable = true;
-    alsa.enable = true;
-    alsa.support32Bit = true;
-    pulse.enable = true;
+  services.pipewire.wireplumber.extraConfig.no-ucm = {
+    "monitor.alsa.properties" = {
+      "alsa.use-ucm" = false;
+    };
   };
 
   # Services
   services.printing.enable = true;
   services.hardware.bolt.enable = true;
   services.power-profiles-daemon.enable = true;
+  services.logind.settings.Login = {
+    HandleLidSwitch = "suspend-then-hibernate";
+    HandleLidSwitchExternalPower = "suspend-then-hibernate";
+  };
 
   # Permissions
   systemd.tmpfiles.rules = [
     "Z /etc/nixos 0755 jakob users -"
-    #"w /sys/devices/system/cpu/cpufreq/boost - - - - 1" # Enable CPU boost
+    #"w /sys/devices/system/cpu/cpufreq/boost - - - - 0" # Disable CPU boost
   ];
 
   systemd.services.ryzenadj-thermal-limit = {
@@ -144,7 +150,7 @@ in
     serviceConfig = {
       Type = "oneshot";
       RemainAfterExit = true;
-      ExecStart = "${pkgs.ryzenadj}/bin/ryzenadj --tctl-temp=90";
+      ExecStart = "${pkgs-unstable.ryzenadj}/bin/ryzenadj --tctl-temp=90";
     };
   };
 
@@ -158,19 +164,27 @@ in
   programs.nix-ld.enable = true;
 
   # zram
-  zramSwap.enable = true;
+  #zramSwap.enable = true;
+
+  systemd.sleep.settings.Sleep = {
+    HibernateDelaySec = "30m";
+    SuspendState = "mem";
+  };
+
+  swapDevices = [
+    { device = "/var/lib/swapfile"; size = 34 * 1024; }  # MiB
+  ];
 
   # AI
   services.ollama = {
     enable = true;
-    package = pkgs.ollama-vulkan;
+    package = pkgs-unstable.ollama-vulkan;
     environmentVariables = {
       OLLAMA_IGPU_ENABLE = "1";
     };
     loadModels = [
-      "llama3.2:3b"           # fast everyday chat
-      "ornith:9b"             # coding
-      "north-mini-code-1.0:q4_K_M" # coding
+      "qwen2.5-coder:7b"
+      "qwen2.5-coder:14b"
     ];
   };
 
@@ -181,26 +195,23 @@ in
     isNormalUser = true;
     description = "jakob";
     extraGroups = [ "networkmanager" "wheel" "uinput" "docker" ];
-    shell = pkgs.fish;
+    shell = pkgs-unstable.fish;
   };
 
   # Home-manager
   home-manager.useGlobalPkgs = true;
   home-manager.useUserPackages = true;
-  home-manager.extraSpecialArgs = { inherit plasma-manager; };
+  home-manager.extraSpecialArgs = { inherit plasma-manager pkgs-unstable pkgs-stable; };
   home-manager.users.jakob = import ./home.nix;
 
   # System packages
   environment.systemPackages =
     let
-      unstablePackages = with pkgs; [
-        
+      unstablePackages = with pkgs-unstable; [
+        kdePackages.oxygen
       ];
 
-      stablePackages = with pkgsStable; [
-        #alsa-utils
-        bibata-cursors
-        #blender
+      stablePackages = with pkgs-stable; [
         bolt
         brightnessctl
         discord
@@ -238,6 +249,7 @@ in
         speechd
         spotify
         tor-browser
+        transmission_4-qt
         typst
         unzip
         usbutils
@@ -252,9 +264,8 @@ in
     in
     unstablePackages ++ stablePackages;
 
-  environment.plasma6.excludePackages = with pkgs; [
+  environment.plasma6.excludePackages = with pkgs-unstable; [
     kdePackages.discover
   ];
-
   system.stateVersion = "25.11";
 }

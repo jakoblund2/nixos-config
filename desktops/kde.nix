@@ -1,7 +1,6 @@
-{ pkgs, lib, plasma-manager, ... }:
+{ pkgs-unstable, plasma-manager, ... }:
 
 let
-  enableKrohnkite = false;
   accent      = "61,212,37";
   accentLight = "118,223,101";
   accentDark  = "45,155,27";
@@ -13,25 +12,27 @@ in
     plasma-manager.homeModules.plasma-manager
   ];
 
-  home.packages = lib.optional enableKrohnkite pkgs.kdePackages.krohnkite;
-
   # Plasma desktop
   programs.plasma = {
     enable = true;
 
-    workspace.cursor = {
-      theme = "Bibata-Modern-Ice";
-      size = 24;
-    };
+  workspace = {
+    lookAndFeel = "org.kde.air";
+  };
 
-    shortcuts = {
-      kwin."Switch to Next Desktop" = "Meta+Tab";
-      kwin."Switch to Previous Desktop" = "Meta+Shift+Tab";
-      kwin."Show Desktop" = "Meta+D";
-      yakuake.toggle-window-state = "F12";
-    };
+  shortcuts = {
+    kwin."Switch to Next Desktop" = "Meta+Tab";
+    kwin."Switch to Previous Desktop" = "Meta+Shift+Tab";
+    kwin."Show Desktop" = "Meta+D";
+    yakuake.toggle-window-state = "F12";
+  };
 
     configFile = {
+      kdeglobals.KDE.AutomaticLookAndFeel = true;
+      kdeglobals.KDE.DefaultDarkLookAndFeel = "org.kde.oxygen";
+      kdeglobals.KDE.DefaultLightLookAndFeel = "org.kde.air";
+      kdeglobals.KDE.LookAndFeelPackage = "org.kde.air";
+
       kdeglobals.General.BrowserApplication = "floorp.desktop";
       kdeglobals.KDE.AnimationDurationFactor = 0.7;
       kdeglobals.General.AccentColor = accent;
@@ -74,8 +75,6 @@ in
       "kdeglobals"."Colors:Window".DecorationHover = accent;
       "kdeglobals"."Colors:Window".ForegroundActive = accent;
       "kdeglobals"."Colors:Window".ForegroundLink = accentDark;
-
-      kdeglobals.KDE.AutomaticLookAndFeel = true;
 
       "kwinrc"."NightColor".Active = false;
 
@@ -179,7 +178,7 @@ in
     [Desktop Entry]
     Type=Application
     Name=Solaar
-    Exec=${pkgs.solaar}/bin/solaar --window=hide --battery-icons=solaar
+    Exec=${pkgs-unstable.solaar}/bin/solaar --window=hide --battery-icons=solaar
     Terminal=false
   '';
 
@@ -188,7 +187,7 @@ in
     [Desktop Entry]
     Type=Application
     Name=Yakuake
-    Exec=${pkgs.kdePackages.yakuake}/bin/yakuake
+    Exec=${pkgs-unstable.kdePackages.yakuake}/bin/yakuake
     Terminal=false
   '';
 }
