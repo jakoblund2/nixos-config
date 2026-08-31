@@ -32,11 +32,6 @@
   # Shell
   programs.fish = {
     enable = true;
-    shellAliases = {
-      rebuild = "sudo nixos-rebuild switch --flake /etc/nixos";
-      update = "nix flake update --flake /etc/nixos";
-      garbage-collect = "sudo nix-env --profile /nix/var/nix/profiles/system --delete-generations +3 && sudo nix-collect-garbage && sudo /run/current-system/bin/switch-to-configuration boot";
-    };
     interactiveShellInit = ''
       set -g fish_greeting
     '';

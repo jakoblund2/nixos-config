@@ -100,7 +100,7 @@ in
       {
         location = "bottom";
         alignment = "center";
-        height = 52;
+        height = 56;
         floating = true;
         hiding = "none";
         minLength = 787;

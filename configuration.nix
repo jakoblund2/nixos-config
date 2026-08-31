@@ -12,11 +12,9 @@
   boot.loader.systemd-boot.configurationLimit = 3;
   boot.loader.efi.canTouchEfiVariables = true;
   boot.kernelPackages = pkgs-unstable.linuxPackages_latest;
-  boot.kernelParams = [ "quiet" "splash" "resume=/dev/nvme0n1p5" "resume_offset=28600320"];
+  boot.kernelParams = [ "quiet" "splash" ];
   boot.kernelModules = [ "cpuid" "msr" ];
   boot.plymouth.enable = true;
-
-  security.protectKernelImage = false; # needed for hibernation
 
   # Networking
   networking.hostName = "framework";
@@ -48,19 +46,7 @@
     powerOnBoot = true;
     settings = {
       General = {
-        # Shows battery charge of connected devices on supported
-        # Bluetooth adapters. Defaults to 'false'.
-        Experimental = true;
-        # When enabled other devices can connect faster to us, however
-        # the tradeoff is increased power consumption. Defaults to
-        # 'false'.
-        FastConnectable = false;
-      };
-      Policy = {
-        # Enable all controllers when they are found. This includes
-        # adapters present on start as well as adapters that are plugged
-        # in later on. Defaults to 'true'.
-        AutoEnable = true;
+        Experimental = true; # Shows battery charge of connected devices
       };
     };
   };
@@ -132,10 +118,6 @@
   services.printing.enable = true;
   services.hardware.bolt.enable = true;
   services.power-profiles-daemon.enable = true;
-  services.logind.settings.Login = {
-    HandleLidSwitch = "suspend-then-hibernate";
-    HandleLidSwitchExternalPower = "suspend-then-hibernate";
-  };
 
   # Permissions
   systemd.tmpfiles.rules = [
@@ -164,16 +146,11 @@
   programs.nix-ld.enable = true;
 
   # zram
-  #zramSwap.enable = true;
+  zramSwap.enable = true;
 
-  systemd.sleep.settings.Sleep = {
-    HibernateDelaySec = "30m";
-    SuspendState = "mem";
-  };
-
-  swapDevices = [
-    { device = "/var/lib/swapfile"; size = 34 * 1024; }  # MiB
-  ];
+  #swapDevices = [
+  #  { device = "/var/lib/swapfile"; size = 34 * 1024; }  # MiB
+  #];
 
   # AI
   services.ollama = {
@@ -181,14 +158,15 @@
     package = pkgs-unstable.ollama-vulkan;
     environmentVariables = {
       OLLAMA_IGPU_ENABLE = "1";
+      OLLAMA_CONTEXT_LENGTH = "128000";
     };
-    loadModels = [
-      "qwen2.5-coder:7b"
-      "qwen2.5-coder:14b"
-    ];
+  #  loadModels = [
+  #    "qwen2.5-coder:7b"
+  #    "qwen2.5-coder:14b"
+  #  ];
   };
 
-  services.open-webui.enable = true; # http://localhost:8080/
+  #services.open-webui.enable = true; # http://localhost:8080/
 
   # User
   users.users.jakob = {
