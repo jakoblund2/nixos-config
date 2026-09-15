@@ -1,4 +1,4 @@
-{ pkgs-unstable, plasma-manager, ... }:
+{ pkgs-stable, pkgs-unstable, plasma-manager, ... }:
 
 let
   accent      = "61,212,37";
@@ -187,7 +187,7 @@ in
     [Desktop Entry]
     Type=Application
     Name=Yakuake
-    Exec=${pkgs-unstable.kdePackages.yakuake}/bin/yakuake
+    Exec=${pkgs-stable.kdePackages.yakuake}/bin/yakuake
     Terminal=false
   '';
 }

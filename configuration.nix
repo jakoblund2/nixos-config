@@ -8,40 +8,51 @@
   nix.settings.experimental-features = [ "nix-command" "flakes" ];
 
   # Bootloader
-  boot.loader.systemd-boot.enable = true;
-  boot.loader.systemd-boot.configurationLimit = 3;
-  boot.loader.efi.canTouchEfiVariables = true;
-  boot.kernelPackages = pkgs-unstable.linuxPackages_latest;
-  boot.kernelParams = [ "quiet" "splash" ];
-  boot.kernelModules = [ "cpuid" "msr" ];
-  boot.plymouth.enable = true;
+  boot = {
+    loader = {
+      systemd-boot.enable = true;
+      systemd-boot.configurationLimit = 3;
+      efi.canTouchEfiVariables = true;
+    };
+    kernelPackages = pkgs-stable.linuxPackages_latest;
+    consoleLogLevel = 3;
+    kernelParams = [ "quiet" "splash" "udev.log_level=3" "ttm.pages_limit=6291456" "amdttm.pages_limit=6291456" "amdttm.page_pool_size=6291456" ];
+    kernelModules = [ "cpuid" "msr" ];
+    plymouth.enable = true;
+  };
 
   # Networking
   networking.hostName = "framework";
   networking.networkmanager.enable = true;
-  networking.networkmanager.plugins = with pkgs-unstable; [
+  networking.networkmanager.plugins = with pkgs-stable; [
     networkmanager-openconnect
   ];
 
   networking.firewall = {
     enable = true;
-    allowedTCPPorts = [ 80 443 53317 ];
+    allowedTCPPorts = [ 80 443 8080 53317 ];
     allowedUDPPorts = [ 53317 ];
   };
 
-  # Hardware
-  hardware.logitech.wireless.enable = true;
-  hardware.uinput.enable = true;
-  hardware.fw-fanctrl.enable = true;
-  hardware.fw-fanctrl.config.defaultStrategy = "medium";
-  hardware.enableRedistributableFirmware = true;
-  hardware.cpu.amd.updateMicrocode = true;
-  hardware.graphics = {
+  virtualisation.docker.enable = true;
+  virtualisation.docker.rootless = {
     enable = true;
-    enable32Bit = true;
+    setSocketVariable = true;
   };
 
-  hardware.bluetooth = {
+  # Hardware
+  hardware = {
+    logitech.wireless.enable = true;
+    uinput.enable = true;
+    fw-fanctrl.enable = true;
+    fw-fanctrl.config.defaultStrategy = "medium";
+    enableRedistributableFirmware = true;
+    cpu.amd.updateMicrocode = true;
+    graphics = {
+      enable = true;
+      enable32Bit = true;
+    };
+    bluetooth = {
     enable = true;
     powerOnBoot = true;
     settings = {
@@ -49,6 +60,12 @@
         Experimental = true; # Shows battery charge of connected devices
       };
     };
+  };
+  };
+
+  security.pam.services.ly.kwallet = {
+    enable = true;
+    package = pkgs-stable.kdePackages.kwallet-pam;
   };
 
   # Disable power saving on wifi module
@@ -75,7 +92,7 @@
     LC_TIME = "en_US.UTF-8";
   };
 
-  fonts.packages = with pkgs-unstable; [
+  fonts.packages = with pkgs-stable; [
     noto-fonts
     noto-fonts-cjk-sans
     noto-fonts-cjk-serif
@@ -103,7 +120,7 @@
   nix.settings.auto-optimise-store = true;
 
   # Desktop environment
-  services.displayManager.sddm.enable = true;
+  services.displayManager.ly.enable = true;
 
   services.desktopManager.plasma6.enable = true;
 
@@ -115,25 +132,10 @@
   };
 
   # Services
-  services.printing.enable = true;
-  services.hardware.bolt.enable = true;
-  services.power-profiles-daemon.enable = true;
-
-  # Permissions
-  systemd.tmpfiles.rules = [
-    "Z /etc/nixos 0755 jakob users -"
-    #"w /sys/devices/system/cpu/cpufreq/boost - - - - 0" # Disable CPU boost
-  ];
-
-  systemd.services.ryzenadj-thermal-limit = {
-    description = "Set Ryzen thermal limit via ryzenadj";
-    wantedBy = [ "multi-user.target" ];
-    after = [ "multi-user.target" ];
-    serviceConfig = {
-      Type = "oneshot";
-      RemainAfterExit = true;
-      ExecStart = "${pkgs-unstable.ryzenadj}/bin/ryzenadj --tctl-temp=90";
-    };
+  services = {
+    printing.enable = true;
+    hardware.bolt.enable = true;
+    power-profiles-daemon.enable = true;
   };
 
   # Shell
@@ -148,32 +150,12 @@
   # zram
   zramSwap.enable = true;
 
-  #swapDevices = [
-  #  { device = "/var/lib/swapfile"; size = 34 * 1024; }  # MiB
-  #];
-
-  # AI
-  services.ollama = {
-    enable = true;
-    package = pkgs-unstable.ollama-vulkan;
-    environmentVariables = {
-      OLLAMA_IGPU_ENABLE = "1";
-      OLLAMA_CONTEXT_LENGTH = "128000";
-    };
-  #  loadModels = [
-  #    "qwen2.5-coder:7b"
-  #    "qwen2.5-coder:14b"
-  #  ];
-  };
-
-  #services.open-webui.enable = true; # http://localhost:8080/
-
   # User
   users.users.jakob = {
     isNormalUser = true;
     description = "jakob";
     extraGroups = [ "networkmanager" "wheel" "uinput" "docker" ];
-    shell = pkgs-unstable.fish;
+    shell = pkgs-stable.fish;
   };
 
   # Home-manager
@@ -201,6 +183,7 @@
         floorp-bin
         freecad
         gdal
+        gearlever
         #gnome-boxes
         htop
         imagemagick
@@ -215,13 +198,16 @@
         #krita
         libreoffice-fresh
         librepods
+        llama-cpp-vulkan # for unsloth appimage
         localsend
         mission-center
+        nil # for nix language
         onlyoffice-desktopeditors
         openconnect
         #parted
         python3
         qgis
+        rocmPackages.rocminfo
         ryzenadj
         solaar
         speechd
@@ -231,6 +217,7 @@
         typst
         unzip
         usbutils
+        uv
         vlc
         vscode
         waypipe
