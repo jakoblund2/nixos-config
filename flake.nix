@@ -44,10 +44,7 @@
         inherit system;
 
         specialArgs = {
-          inherit
-            pkgs-unstable
-            pkgs-stable
-            plasma-manager;
+          inherit pkgs-unstable pkgs-stable plasma-manager;
         };
 
         modules = [

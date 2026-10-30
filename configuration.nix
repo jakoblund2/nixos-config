@@ -1,11 +1,25 @@
-{ config, pkgs-unstable, pkgs-stable, plasma-manager, ... }:
+{ pkgs-unstable, pkgs-stable, plasma-manager, ... }:
 
 {
   imports = [
     ./hardware-configuration.nix
+    ./microphone.nix
   ];
 
-  nix.settings.experimental-features = [ "nix-command" "flakes" ];
+  # Nix
+  nix.settings = {
+    experimental-features = [ "nix-command" "flakes" ];
+    auto-optimise-store = true;
+    substituters = [
+      "https://cache.nixos.org"
+      "https://nix-community.cachix.org"
+    ];
+    trusted-public-keys = [
+      "cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY="
+      "nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs="
+    ];
+  };
+  nixpkgs.config.allowUnfree = true;
 
   # Bootloader
   boot = {
@@ -16,51 +30,47 @@
     };
     kernelPackages = pkgs-stable.linuxPackages_latest;
     consoleLogLevel = 3;
-    kernelParams = [ "quiet" "splash" "udev.log_level=3" "ttm.pages_limit=6291456" "amdttm.pages_limit=6291456" "amdttm.page_pool_size=6291456" ];
+    kernelParams = [ "quiet" "splash" "udev.log_level=3" "ttm.pages_limit=6291456" "amdttm.pages_limit=6291456" "amdttm.page_pool_size=6291456" "resume_offset=117743616" ];
     kernelModules = [ "cpuid" "msr" ];
     plymouth.enable = true;
+    resumeDevice = "/dev/disk/by-uuid/64d7254e-b7d2-4155-9be8-7508c24c74a8";
   };
+
+  # Swap & sleep
+  zramSwap.enable = true;
+  swapDevices = [{
+    device = "/var/lib/swapfile";
+    size = 32 * 1024; # MiB, at least your RAM
+  }];
+  systemd.sleep.settings.Sleep.HibernateDelaySec = "1h";
 
   # Networking
-  networking.hostName = "framework";
-  networking.networkmanager.enable = true;
-  networking.networkmanager.plugins = with pkgs-stable; [
-    networkmanager-openconnect
-  ];
-
-  networking.firewall = {
-    enable = true;
-    allowedTCPPorts = [ 80 443 8080 53317 ];
-    allowedUDPPorts = [ 53317 ];
-  };
-
-  virtualisation.docker.enable = true;
-  virtualisation.docker.rootless = {
-    enable = true;
-    setSocketVariable = true;
+  networking = {
+    hostName = "framework";
+    nameservers = [ "1.1.1.1" "9.9.9.9" ];
+    networkmanager.enable = true;
+    networkmanager.plugins = with pkgs-stable; [ networkmanager-openconnect ];
+    firewall = {
+      enable = true;
+      allowedTCPPorts = [ 80 443 8080 53317 ];
+      allowedUDPPorts = [ 53317 ];
+    };
   };
 
   # Hardware
   hardware = {
-    logitech.wireless.enable = true;
+    logitech.wireless = { enable = true; enableGraphical = true; };  # installs solaar
     uinput.enable = true;
     fw-fanctrl.enable = true;
     fw-fanctrl.config.defaultStrategy = "medium";
     enableRedistributableFirmware = true;
-    cpu.amd.updateMicrocode = true;
-    graphics = {
-      enable = true;
-      enable32Bit = true;
-    };
     bluetooth = {
-    enable = true;
-    powerOnBoot = true;
-    settings = {
-      General = {
-        Experimental = true; # Shows battery charge of connected devices
-      };
+      enable = true;
+      powerOnBoot = true;
+      settings.General.Experimental = true;  # shows battery charge of connected devices
     };
-  };
+    amdgpu.opencl.enable = true;
+    graphics = { enable = true; extraPackages = [ pkgs-stable.rocmPackages.clr.icd ]; };
   };
 
   security.pam.services.ly.kwallet = {
@@ -68,16 +78,7 @@
     package = pkgs-stable.kdePackages.kwallet-pam;
   };
 
-  # Disable power saving on wifi module
-  environment.etc."NetworkManager/conf.d/wifi-powersave.conf".text = ''
-    [connection]
-    wifi.powersave = 2
-  '';
-
-  # Unfree
-  nixpkgs.config.allowUnfree = true;
-
-  # Locale & time
+  # Locale, time & keyboard
   time.timeZone = "Europe/Copenhagen";
   i18n.defaultLocale = "en_DK.UTF-8";
   i18n.extraLocaleSettings = {
@@ -91,70 +92,62 @@
     LC_TELEPHONE = "en_US.UTF-8";
     LC_TIME = "en_US.UTF-8";
   };
-
-  fonts.packages = with pkgs-stable; [
-    noto-fonts
-    noto-fonts-cjk-sans
-    noto-fonts-cjk-serif
-    noto-fonts-color-emoji
-    jetbrains-mono
-  ];
-
-  # Optional but recommended — sets sensible defaults and fixes the
-  # Chinese-vs-Japanese glyph selection issue:
-  fonts.fontconfig.defaultFonts = {
-    sansSerif = [ "Noto Sans" "Noto Sans CJK JP" ];
-    serif = [ "Noto Serif" "Noto Serif CJK JP" ];
-    monospace = [ "JetBrains Mono" "Noto Sans Mono CJK JP" ];
-    emoji = [ "Noto Color Emoji" ];
-  };
-
-  # Console & keyboard
   console.keyMap = "dk";
 
-  services.xserver.xkb = {
-    layout = "dk";
-  };
-
-  # Optimize
-  nix.settings.auto-optimise-store = true;
-
-  # Desktop environment
-  services.displayManager.ly.enable = true;
-
-  services.desktopManager.plasma6.enable = true;
-
-  # Audio
-  services.pipewire.wireplumber.extraConfig.no-ucm = {
-    "monitor.alsa.properties" = {
-      "alsa.use-ucm" = false;
+  # Fonts
+  fonts = {
+    packages = with pkgs-stable; [
+      noto-fonts
+      noto-fonts-cjk-sans
+      noto-fonts-cjk-serif
+      noto-fonts-color-emoji
+      jetbrains-mono
+    ];
+    fontconfig.defaultFonts = {
+      sansSerif = [ "Noto Sans" "Noto Sans CJK JP" ];
+      serif = [ "Noto Serif" "Noto Serif CJK JP" ];
+      monospace = [ "JetBrains Mono" "Noto Sans Mono CJK JP" ];
+      emoji = [ "Noto Color Emoji" ];
     };
   };
 
   # Services
   services = {
+    displayManager.ly.enable = true;
+    desktopManager.plasma6.enable = true;
+    xserver.xkb.layout = "dk";
     printing.enable = true;
     hardware.bolt.enable = true;
-    power-profiles-daemon.enable = true;
+    languagetool.enable = true;
+    usbmuxd.enable = true;
+    logind.settings.Login.HandleLidSwitch = "suspend-then-hibernate";
+    flatpak.enable = true;
   };
 
-  # Shell
-  programs.fish.enable = true;
+  programs = {
+    appimage.enable = true;
+    appimage.binfmt = true;
+    fish.enable = true;
+    steam.enable = true;
+    nix-ld.enable = true;
+    nix-ld.libraries = with pkgs-stable; [ stdenv.cc.cc.lib zlib libdrm numactl elfutils libGL glib libxcb libX11 libxext libsm libice wayland libxkbcommon alsa-lib ];
+  };
 
-  # Gaming
-  programs.steam.enable = true;
-
-  # nix-ld
-  programs.nix-ld.enable = true;
-
-  # zram
-  zramSwap.enable = true;
+  # Folding@home
+  services.foldingathome = {
+    enable = true;
+    user = "Jakob";        # name shown in the stats
+    # team = 236565;       # this is the default, the NixOS team
+    daemonNiceLevel = 19;  # lowest priority
+  };
+  # GPU access for the module's DynamicUser
+  systemd.services.foldingathome.serviceConfig.SupplementaryGroups = [ "video" "render" ];
 
   # User
   users.users.jakob = {
     isNormalUser = true;
     description = "jakob";
-    extraGroups = [ "networkmanager" "wheel" "uinput" "docker" ];
+    extraGroups = [ "networkmanager" "wheel" "uinput" "video" "render" ];
     shell = pkgs-stable.fish;
   };
 
@@ -168,7 +161,9 @@
   environment.systemPackages =
     let
       unstablePackages = with pkgs-unstable; [
+        claude-code
         kdePackages.oxygen
+        llama-cpp-vulkan
       ];
 
       stablePackages = with pkgs-stable; [
@@ -198,18 +193,18 @@
         #krita
         libreoffice-fresh
         librepods
-        llama-cpp-vulkan # for unsloth appimage
         localsend
         mission-center
         nil # for nix language
         onlyoffice-desktopeditors
         openconnect
+        patchelf
         #parted
         python3
         qgis
         rocmPackages.rocminfo
         ryzenadj
-        solaar
+        sl
         speechd
         spotify
         tor-browser
@@ -222,6 +217,7 @@
         vscode
         waypipe
         wget
+        #whisperx
         yt-dlp
         zip
         zoom-us
@@ -232,5 +228,6 @@
   environment.plasma6.excludePackages = with pkgs-unstable; [
     kdePackages.discover
   ];
+
   system.stateVersion = "25.11";
 }

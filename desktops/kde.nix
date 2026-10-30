@@ -18,6 +18,8 @@ in
 
   workspace = {
     lookAndFeel = "org.kde.air";
+    # Breeze Plasma Style has no colors file, so the panel follows the kdeglobals accent
+    theme = "default";
   };
 
   shortcuts = {
@@ -28,9 +30,9 @@ in
   };
 
     configFile = {
-      kdeglobals.KDE.AutomaticLookAndFeel = true;
-      kdeglobals.KDE.DefaultDarkLookAndFeel = "org.kde.oxygen";
-      kdeglobals.KDE.DefaultLightLookAndFeel = "org.kde.air";
+      kdeglobals.KDE.AutomaticLookAndFeel = false;
+      #kdeglobals.KDE.DefaultDarkLookAndFeel = "org.kde.oxygen";
+      #kdeglobals.KDE.DefaultLightLookAndFeel = "org.kde.air";
       kdeglobals.KDE.LookAndFeelPackage = "org.kde.air";
 
       kdeglobals.General.BrowserApplication = "floorp.desktop";
@@ -81,7 +83,7 @@ in
       ksmserverrc.General.loginMode = "emptySession";
       kwinrc.Windows.RollOverDesktops = false;
       kwinrc.Windows.PerOutputVirtualDesktops = true;
-      kwinrc.Desktops.Number = 3;
+      kwinrc.Desktops.Number = 2;
       kwinrc.Desktops.Rows = 1;
 
       kwinrc."Effect-overview".BorderActivate = 9;
@@ -148,6 +150,7 @@ in
                 "org.kde.plasma.devicenotifier"
                 "org.kde.plasma.mediacontroller"
                 "org.kde.plasma.brightness"
+                "org.kde.plasma.weather"
                 "org.kde.yakuake"
                 "Yakuake"
                 "librepods"
@@ -171,6 +174,39 @@ in
         ];
       }
     ];
+  };
+
+  programs.plasma.powerdevil = {
+    AC = {
+      autoSuspend.action = "nothing";
+      powerButtonAction = "showLogoutScreen";
+      whenLaptopLidClosed = "sleep";
+      inhibitLidActionWhenExternalMonitorConnected = true;
+      whenSleepingEnter = "standby";
+      dimDisplay = { enable = true; idleTimeout = 300; };
+      turnOffDisplay = { idleTimeout = 600; idleTimeoutWhenLocked = 20; };
+    };
+
+    battery = {
+      autoSuspend = { action = "sleep"; idleTimeout = 600; };
+      powerButtonAction = "showLogoutScreen";
+      whenLaptopLidClosed = "sleep";
+      inhibitLidActionWhenExternalMonitorConnected = true;
+      whenSleepingEnter = "standbyThenHibernate";
+      dimDisplay = { enable = true; idleTimeout = 120; };
+      turnOffDisplay = { idleTimeout = 300; idleTimeoutWhenLocked = 20; };
+    };
+
+    lowBattery = {
+      autoSuspend = { action = "sleep"; idleTimeout = 300; };
+      powerButtonAction = "showLogoutScreen";
+      whenLaptopLidClosed = "sleep";
+      inhibitLidActionWhenExternalMonitorConnected = true;
+      whenSleepingEnter = "standby";
+      displayBrightness = 30;
+      dimDisplay = { enable = true; idleTimeout = 60; };
+      turnOffDisplay = { idleTimeout = 120; idleTimeoutWhenLocked = 20; };
+    };
   };
 
   # Autostart: Solaar (minimized)

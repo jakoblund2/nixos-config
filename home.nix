@@ -54,6 +54,9 @@
       "application/xhtml+xml" = "floorp.desktop";
       "application/xml" = "org.kde.kate.desktop";
       "x-scheme-handler/ftb" = "ftb-app.desktop";
+      "x-scheme-handler/claude-cli" = "claude-code-url-handler.desktop";
     };
   };
+  # Apps (e.g. claude-code) rewrite this file in place, which blocks HM activation
+  xdg.configFile."mimeapps.list".force = true;
 }
