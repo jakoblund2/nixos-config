@@ -8,3 +8,13 @@
   - Test: [thumb_wheel_down, 30]
   - Execute: [qdbus, org.kde.kglobalaccel, /component/kwin, org.kde.kglobalaccel.Component.invokeShortcut, 'Switch to Previous Desktop']
 ...
+---
+# Hold the Dictation key (MX Mechanical Mini) to dictate into the active window with Speech Note.
+# Calls Speech Note over D-Bus (instant) instead of `flatpak run --action` (~0.3s per call).
+- Key: [Dictation, pressed]
+- Execute: [busctl, --user, call, net.mkiol.SpeechNote, /net/mkiol/SpeechNote, net.mkiol.SpeechNote, InvokeAction, 'sa{sv}', start-listening-active-window, '0']
+...
+---
+- Key: [Dictation, released]
+- Execute: [busctl, --user, call, net.mkiol.SpeechNote, /net/mkiol/SpeechNote, net.mkiol.SpeechNote, InvokeAction, 'sa{sv}', stop-listening, '0']
+...

@@ -36,6 +36,12 @@
     resumeDevice = "/dev/disk/by-uuid/64d7254e-b7d2-4155-9be8-7508c24c74a8";
   };
 
+  environment.etc."samba/smb.conf".text = ''
+    [global]
+      workgroup = UNI
+      client min protocol = SMB2
+  '';
+
   # Swap & sleep
   zramSwap.enable = true;
   swapDevices = [{
@@ -50,10 +56,7 @@
     nameservers = [ "1.1.1.1" "9.9.9.9" ];
     networkmanager.enable = true;
     networkmanager.plugins = with pkgs-stable; [ networkmanager-openconnect ];
-    firewall = {
-      enable = true;
-      allowedTCPPorts = [ 80 443 8080 53317 ];
-      allowedUDPPorts = [ 53317 ];
+    firewall = { enable = true; allowedTCPPorts = [ 80 443 8080 53317 ]; allowedUDPPorts = [ 53317 ];
     };
   };
 
@@ -64,19 +67,13 @@
     fw-fanctrl.enable = true;
     fw-fanctrl.config.defaultStrategy = "medium";
     enableRedistributableFirmware = true;
-    bluetooth = {
-      enable = true;
-      powerOnBoot = true;
-      settings.General.Experimental = true;  # shows battery charge of connected devices
+    bluetooth = { enable = true; powerOnBoot = true; settings.General.Experimental = true;  # shows battery charge of connected devices
     };
     amdgpu.opencl.enable = true;
     graphics = { enable = true; extraPackages = [ pkgs-stable.rocmPackages.clr.icd ]; };
   };
 
-  security.pam.services.ly.kwallet = {
-    enable = true;
-    package = pkgs-stable.kdePackages.kwallet-pam;
-  };
+  security.pam.services.ly.kwallet = { enable = true; package = pkgs-stable.kdePackages.kwallet-pam; };
 
   # Locale, time & keyboard
   time.timeZone = "Europe/Copenhagen";
@@ -113,7 +110,7 @@
 
   # Services
   services = {
-    displayManager.ly.enable = true;
+    displayManager.ly = { enable = true; settings = { bigclock = "en"; clock = "%c"; hide_borders = true; save = true; load = true; };};
     desktopManager.plasma6.enable = true;
     xserver.xkb.layout = "dk";
     printing.enable = true;
@@ -164,11 +161,13 @@
         claude-code
         kdePackages.oxygen
         llama-cpp-vulkan
+        vscode
       ];
 
       stablePackages = with pkgs-stable; [
         bolt
         brightnessctl
+        chromium
         discord
         earlyoom
         espeak-ng
@@ -214,7 +213,7 @@
         usbutils
         uv
         vlc
-        vscode
+
         waypipe
         wget
         #whisperx

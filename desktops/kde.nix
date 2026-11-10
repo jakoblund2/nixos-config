@@ -20,7 +20,12 @@ in
     lookAndFeel = "org.kde.air";
     # Breeze Plasma Style has no colors file, so the panel follows the kdeglobals accent
     theme = "default";
+    wallpaperPictureOfTheDay.provider = "bing";
   };
+
+  kwin.effects.windowOpenClose.animation = "fade";
+
+  kscreenlocker.appearance.wallpaperPictureOfTheDay.provider = "bing";
 
   shortcuts = {
     kwin."Switch to Next Desktop" = "Meta+Tab";
@@ -214,7 +219,7 @@ in
     [Desktop Entry]
     Type=Application
     Name=Solaar
-    Exec=${pkgs-unstable.solaar}/bin/solaar --window=hide --battery-icons=solaar
+    Exec=${pkgs-unstable.solaar}/bin/solaar --window=hide --battery-icons=solaar --restart-on-wake-up
     Terminal=false
   '';
 
